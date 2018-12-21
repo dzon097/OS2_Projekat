@@ -34,7 +34,7 @@ public class Main {
             processLength = (processLength + 1) % Process.ProcessLength.values().length;
         }
 
-        String[] schedArgs = new String[args.length - 2];
+        String[] schedArgs = new String[args.length - 2];						//ostatak iz komadne linije
         java.lang.System.arraycopy(args, 2, schedArgs, 0, schedArgs.length);
         Scheduler scheduler = Scheduler.createScheduler(schedArgs);
         System system = new System(scheduler, numCpus, processes);
