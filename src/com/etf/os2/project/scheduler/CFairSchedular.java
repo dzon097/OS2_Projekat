@@ -5,7 +5,7 @@ import com.etf.os2.project.process.Pcb;
 public class CFairSchedular extends Scheduler {
 
 	public CFairSchedular(String[] args) {
-		// TODO Auto-generated constructor stub
+		
 	}
 
 	@Override

@@ -10,6 +10,7 @@ public abstract class Scheduler {
     public static Scheduler createScheduler(String[] args) {
     	int n = Integer.parseInt(args[0]);
     	String[] constructArgs = new String[args.length - 1];
+    	java.lang.System.arraycopy(args, 1, constructArgs, 0, constructArgs.length);
     	switch(n) {
     	case 1:
     		return new SJFScheduler(constructArgs);
