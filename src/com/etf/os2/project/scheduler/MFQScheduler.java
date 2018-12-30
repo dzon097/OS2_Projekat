@@ -67,6 +67,11 @@ public class MFQScheduler extends Scheduler {
 			if(ProcessState.RUNNING == pcb.getPreviousState()) {
 				int n = pcb.getPcbData().getMFQSLevel();
 				i = (n+1 >= numLevel) ? numLevel-1 : n+1 ; 
+//				int k=0;
+//				for(k=0; k<Pcb.RUNNING.length;k++)
+//					if(pcb.getId() == Pcb.RUNNING[k].getId())
+//						break;
+//				pcb.getPcbData().setCPU(k);
 			}
 		
 		pcb.getPcbData().setMFQSLevel(i);
