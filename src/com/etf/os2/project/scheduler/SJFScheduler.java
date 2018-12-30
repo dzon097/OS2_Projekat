@@ -7,19 +7,20 @@ import com.etf.os2.project.process.PcbData;
 import com.etf.os2.project.process.Pcb.ProcessState;
 
 public class SJFScheduler extends Scheduler {
-	private static long TAUSTART = 2;
+	private static long TAUSTART = 10;
 
 	private float alfa;
 	private boolean preempty;
 	private PriorityQueue<PcbPrioritySJFS> queue;
+	private int CPU;
+	private long tau;
 
-	public SJFScheduler(String[] args) /**
-										 * prvi argument stepen usredljavanja, drugi tip algoritma 0 nonpreemty !=0
-										 * preemty
-										 */
+	public SJFScheduler(String[] args) // prvi argument stepen usredljavanja, drugi tip algoritma 0 nonpreemty !=0
+										// preemty
 	{
 		alfa = Float.parseFloat(args[0]);
 		int n = Integer.parseInt(args[1]);
+		tau=Long.MAX_VALUE;
 		if (n != 0)
 			preempty = true;
 		else
@@ -29,15 +30,23 @@ public class SJFScheduler extends Scheduler {
 
 	@Override
 	public Pcb get(int cpuId) {
+		
 		if (queue.size() != 0) {
+		
 			PcbPrioritySJFS pp = queue.remove();
 			Pcb pcb = pp.getPcb();
 			pcb.setTimeslice(0);
-			if (preempty)
-				Pcb.RUNNING[cpuId].setPreempt(!preempty);
-
+			if (preempty) {
+				if(pcb.isPreempt())
+				pcb.setPreempt(!preempty);
+				if(tau>pcb.getPcbData().getTau()) {
+					tau = pcb.getPcbData().getTau();
+					CPU=cpuId;
+				}
+			}
 			return pcb;
 		}
+		
 		return null;
 	}
 
@@ -52,24 +61,22 @@ public class SJFScheduler extends Scheduler {
 		if (ProcessState.CREATED == pcb.getPreviousState()) {
 			pcb.getPcbData().setTau(TAUSTART);
 		} else {
-			if (ProcessState.BLOCKED == pcb.getPreviousState()) {
-				pcb.getPcbData().setTau((long) ((pcb.getExecutionTime() + pcb.getPcbData().getTau()) * alfa));
+			if (ProcessState.BLOCKED == pcb.getPreviousState()) { // Resi ovo Lepse !!!!
+				long time=0;
+				if(pcb.getPcbData().getvRunTime()==0)
+					time=pcb.getExecutionTime();
+				else
+					time=pcb.getPcbData().getvRunTime();
+				pcb.getPcbData().setTau((long) ((time + pcb.getPcbData().getTau()) * alfa));
 
 			} else if (ProcessState.RUNNING == pcb.getPreviousState()) {
-				int k = 0;
-				for (k = 0; k < Pcb.RUNNING.length; k++)
-					if (pcb.getId() == Pcb.RUNNING[k].getId())
-						break;
-				pcb.getPcbData().setCPU(k);
+				if(preempty)
+					pcb.getPcbData().setvRunTime(pcb.getPcbData().getvRunTime()+pcb.getExecutionTime());
 			}
-			if (preempty)
-				Pcb.RUNNING[pcb.getPcbData().getCPU()].setPreempt(preempty);
 		}
-
-		boolean b = queue.add(new PcbPrioritySJFS(pcb));
-		if (!b)
-			System.out.println("***** Nije ubacen u red **** ");
-
+		if (preempty && pcb.getPcbData().getTau()<tau)
+			Pcb.RUNNING[CPU].setPreempt(preempty);
+		queue.add(new PcbPrioritySJFS(pcb));
 	}
 
 }

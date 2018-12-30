@@ -19,10 +19,13 @@ public class PcbPriorityMFQS implements Comparable<PcbPriorityMFQS> {
 		else
 			return -1;
 	}
-	
+
 	public Pcb getPcb() {
 		return pcb;
 	}
 
+	public void setPcb(Pcb pcb) {
+		this.pcb = pcb;
+	}
 
 }

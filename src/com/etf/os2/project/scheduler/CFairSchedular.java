@@ -21,6 +21,7 @@ public class CFairSchedular extends Scheduler {
 		long minWait= Long.MAX_VALUE;
 		Pcb pcb=null;
 		int k= Integer.MAX_VALUE;
+		
 		for(int i=0; i<list.size();i++) {
 			if(list.get(i).getPcbData().getvRunTime()<minWait) {
 				minWait=list.get(i).getPcbData().getvRunTime();
@@ -30,8 +31,11 @@ public class CFairSchedular extends Scheduler {
 		if(k== Integer.MAX_VALUE)
 			return null;
 		pcb  = list.remove(k);
-		long time = (list.size()==0 || (pcb.getPcbData().getWaitTime() - Pcb.getCurrentTime())/list.size() == 0) ?  MINVRUN  :  (pcb.getPcbData().getWaitTime() - Pcb.getCurrentTime())/list.size();
-		pcb.setTimeslice(time);
+		long t =Pcb.getCurrentTime() - pcb.getPcbData().getWaitTime();
+//		long time = (list.size()==0 || (t)/Pcb.getProcessCount() == 0) ?  MINVRUN  : (t)/Pcb.getProcessCount();
+//		long time = (pcb.getPcbData().getWaitTime() - Pcb.getCurrentTime())/list.size() + MINVRUN;
+		long time = (t + pcb.getPcbData().getvRunTime())/Pcb.getProcessCount();
+		pcb.setTimeslice(time==0 ? MINVRUN: time);
 		return pcb;
 	}
 
@@ -43,11 +47,11 @@ public class CFairSchedular extends Scheduler {
 			pcb.setPcbData(new PcbData());
 		pd = pcb.getPcbData();
 		if(ProcessState.CREATED == pcb.getPreviousState() || ProcessState.BLOCKED == pcb.getPreviousState() ) {
-				pd.setvRunTime(MINVRUN);
+				pd.setvRunTime(0);
 			}
 		else
 			if(ProcessState.RUNNING == pcb.getPreviousState()) {
-				pd.setvRunTime(pd.getvRunTime()+pcb.getExecutionTime()* pcb.getPriority());
+				pd.setvRunTime(pd.getvRunTime()+pcb.getExecutionTime());
 			}
 		
 		pcb.getPcbData().setWaitTime(Pcb.getCurrentTime());
