@@ -10,7 +10,7 @@ import com.etf.os2.project.process.Pcb.ProcessState;
 public class CFairSchedular extends Scheduler {
 	
 	private List<Pcb> list;
-	private final static long MINVRUN=5;
+	private final static long MINVRUN=10;
 	
 	public CFairSchedular(String[] args) {
 		list = new ArrayList<Pcb>();
@@ -34,8 +34,8 @@ public class CFairSchedular extends Scheduler {
 		long t =Pcb.getCurrentTime() - pcb.getPcbData().getWaitTime();
 //		long time = (list.size()==0 || (t)/Pcb.getProcessCount() == 0) ?  MINVRUN  : (t)/Pcb.getProcessCount();
 //		long time = (pcb.getPcbData().getWaitTime() - Pcb.getCurrentTime())/list.size() + MINVRUN;
-		long time = (t + pcb.getPcbData().getvRunTime())/Pcb.getProcessCount();
-		pcb.setTimeslice(time==0 ? MINVRUN: time);
+		long time = t /Pcb.getProcessCount();
+		pcb.setTimeslice(time== 0 ? MINVRUN: time);
 		return pcb;
 	}
 
@@ -53,8 +53,7 @@ public class CFairSchedular extends Scheduler {
 			if(ProcessState.RUNNING == pcb.getPreviousState()) {
 				pd.setvRunTime(pd.getvRunTime()+pcb.getExecutionTime());
 			}
-		
-		pcb.getPcbData().setWaitTime(Pcb.getCurrentTime());
+		pd.setWaitTime(Pcb.getCurrentTime());
 		list.add(pcb);
 	}
 
