@@ -1,60 +1,76 @@
 package com.etf.os2.project.scheduler;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Comparator;
+import java.util.PriorityQueue;
 
-import com.etf.os2.project.process.Pcb;
-import com.etf.os2.project.process.PcbData;
+import com.etf.os2.project.process.*;
 import com.etf.os2.project.process.Pcb.ProcessState;
 
 public class CFairSchedular extends Scheduler {
-	
-	private List<Pcb> list;
-	private final static long MINVRUN=10;
-	
+	private final static long MINVRUN = 10;
+	private final static int INITVEL = 20;
+
+	private PriorityQueue<Pcb> buffer;
+	private PcbCompartor comparator;
+
+	class PcbCompartor implements Comparator<Pcb> {
+
+		public PcbCompartor() {
+		}
+
+		@Override
+		public int compare(Pcb p1, Pcb p2) {
+			long VR1 = p1.getPcbData().getvRunTime() + (Pcb.getCurrentTime() - p1.getPcbData().getWaitTime()),
+					VR2 = p2.getPcbData().getvRunTime() + (Pcb.getCurrentTime() - p2.getPcbData().getWaitTime());
+			if (VR1 == VR2) {
+
+				if (p1.getPriority() == p2.getPriority())
+					return 0;
+				else if (p1.getPriority() > p1.getPriority())
+					return 1;
+				else
+					return -1;
+			} else if (VR1 > VR2)
+				return 1;
+			else
+				return -1;
+		}
+
+	}
+
 	public CFairSchedular(String[] args) {
-		list = new ArrayList<Pcb>();
+		comparator = new PcbCompartor();
+		buffer = new PriorityQueue<Pcb>(INITVEL, comparator);
 	}
 
 	@Override
 	public Pcb get(int cpuId) {
-		long minWait= Long.MAX_VALUE;
-		Pcb pcb=null;
-		int k= Integer.MAX_VALUE;
-		
-		for(int i=0; i<list.size();i++) {
-			if(list.get(i).getPcbData().getvRunTime()<minWait) {
-				minWait=list.get(i).getPcbData().getvRunTime();
-				k=i;
-			}
+		Pcb pcb = null;
+		if (buffer.size() != 0) {
+			pcb = buffer.remove();
+			long time = (Pcb.getCurrentTime() - pcb.getPcbData().getWaitTime()) / Pcb.getProcessCount();
+			pcb.setTimeslice(time == 0 ? MINVRUN : time);
+//			pcb.setTimeslice(time);
 		}
-		if(k== Integer.MAX_VALUE)
-			return null;
-		pcb  = list.remove(k);
-		long t =Pcb.getCurrentTime() - pcb.getPcbData().getWaitTime();
-//		long time = (list.size()==0 || (t)/Pcb.getProcessCount() == 0) ?  MINVRUN  : (t)/Pcb.getProcessCount();
-//		long time = (pcb.getPcbData().getWaitTime() - Pcb.getCurrentTime())/list.size() + MINVRUN;
-		long time = t /Pcb.getProcessCount();
-		pcb.setTimeslice(time== 0 ? MINVRUN: time);
 		return pcb;
 	}
 
 	@Override
 	public void put(Pcb pcb) {
-		if(pcb==null || ProcessState.IDLE == pcb.getPreviousState() || ProcessState.FINISHED == pcb.getPreviousState() ) return;
+		if (pcb == null || ProcessState.IDLE == pcb.getPreviousState()
+				|| ProcessState.FINISHED == pcb.getPreviousState())
+			return;
 		PcbData pd = pcb.getPcbData();
-		if(pd==null) 
+		if (pd == null)
 			pcb.setPcbData(new PcbData());
 		pd = pcb.getPcbData();
-		if(ProcessState.CREATED == pcb.getPreviousState() || ProcessState.BLOCKED == pcb.getPreviousState() ) {
-				pd.setvRunTime(0);
-			}
-		else
-			if(ProcessState.RUNNING == pcb.getPreviousState()) {
-				pd.setvRunTime(pd.getvRunTime()+pcb.getExecutionTime());
-			}
+		if (ProcessState.CREATED == pcb.getPreviousState() || ProcessState.BLOCKED == pcb.getPreviousState()) {
+			pd.setvRunTime(0);
+		} else if (ProcessState.RUNNING == pcb.getPreviousState()) {
+			pd.setvRunTime(pd.getvRunTime() + pcb.getExecutionTime());
+		}
 		pd.setWaitTime(Pcb.getCurrentTime());
-		list.add(pcb);
+		buffer.add(pcb);
 	}
 
 }

@@ -1,21 +1,40 @@
 package com.etf.os2.project.scheduler;
 
+import java.util.Comparator;
 import java.util.PriorityQueue;
 
-import com.etf.os2.project.process.Pcb;
-import com.etf.os2.project.process.PcbData;
+import com.etf.os2.project.process.*;
 import com.etf.os2.project.process.Pcb.ProcessState;
 
 public class SJFScheduler extends Scheduler {
-	private static long TAUSTART = 10;
+	private static long TAUSTART = 1;
+	private static int INITVEL = 20;
 
 	private float alfa;
 	private boolean preempty;
-	private PriorityQueue<PcbPrioritySJFS> queue;
+	private PriorityQueue<Pcb> queue;
+	private PcbCompartor comparator;
 
-	public SJFScheduler(String[] args) // prvi argument stepen usredljavanja, drugi tip algoritma 0 nonpreemty !=0
-										// preemty
-	{
+	class PcbCompartor implements Comparator<Pcb> {
+		@Override
+		public int compare(Pcb p1, Pcb p2) {	
+			long tau1 = p1.getPcbData().getTau(), tau2 = p2.getPcbData().getTau();
+			if(tau1 == tau2) {
+				if (p1.getPriority() < p2.getPriority())
+					return -1;
+				else if (p1.getPriority() > p2.getPriority())
+					return 1;
+				else
+				return 0;
+			}
+			else if (tau1 > tau2)
+				return 1;
+			else
+				return -1;
+		}
+	}
+
+	public SJFScheduler(String[] args) {
 		alfa = Float.parseFloat(args[0]);
 		int n = Integer.parseInt(args[1]);
 
@@ -23,15 +42,15 @@ public class SJFScheduler extends Scheduler {
 			preempty = true;
 		else
 			preempty = false;
-		queue = new PriorityQueue<>();
+
+		comparator = new PcbCompartor();
+		queue = new PriorityQueue<>(INITVEL, comparator);
 	}
 
 	@Override
 	public Pcb get(int cpuId) {
 		if (queue.size() != 0) {
-
-			PcbPrioritySJFS pp = queue.remove();
-			Pcb pcb = pp.getPcb();
+			Pcb pcb = queue.remove();
 			pcb.setTimeslice(0);
 
 			if (preempty) {
@@ -54,21 +73,11 @@ public class SJFScheduler extends Scheduler {
 		if (ProcessState.CREATED == pcb.getPreviousState()) {
 			pcb.getPcbData().setTau(TAUSTART);
 		} else {
-			if (ProcessState.BLOCKED == pcb.getPreviousState()) { // Resi ovo Lepse !!!!
-				long time = 0;
-				if (pcb.getPcbData().getvRunTime() == 0)
-					time = pcb.getExecutionTime();
-				else
-					time = pcb.getPcbData().getvRunTime();
-				pcb.getPcbData().setTau((long) ((time + pcb.getPcbData().getTau()) * alfa));
-
-			} else if (ProcessState.RUNNING == pcb.getPreviousState()) {
-				if (preempty)
-					pcb.getPcbData().setvRunTime(pcb.getPcbData().getvRunTime() + pcb.getExecutionTime());
-			}
+			if (ProcessState.BLOCKED == pcb.getPreviousState() || ProcessState.RUNNING == pcb.getPreviousState() )		
+				pcb.getPcbData().setTau((long) ((pcb.getExecutionTime() + pcb.getPcbData().getTau()) * alfa));
 		}
+
 		if (preempty) {
-			// Pcb.RUNNING[CPU].setPreempt(preempty);
 			for (int k = 0; k < Pcb.RUNNING.length; k++)
 				if (Pcb.RUNNING[k] != null && Pcb.RUNNING[k] != Pcb.IDLE
 						&& Pcb.RUNNING[k].getPcbData().getTau() > pcb.getPcbData().getTau()) {
@@ -76,8 +85,7 @@ public class SJFScheduler extends Scheduler {
 					break;
 				}
 		}
-
-		queue.add(new PcbPrioritySJFS(pcb));
+		queue.add(pcb);
 	}
 
 }

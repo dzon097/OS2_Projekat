@@ -1,10 +1,11 @@
-package com.etf.os2.project.scheduler;
+package com.etf.os2.project.scheduler.visak;
 
 import java.util.PriorityQueue;
 
 import com.etf.os2.project.process.Pcb;
 import com.etf.os2.project.process.PcbData;
 import com.etf.os2.project.process.Pcb.ProcessState;
+import com.etf.os2.project.scheduler.Scheduler;
 
 public class SJFSchedulerCPU extends Scheduler {
 	private static long TAUSTART = 2;

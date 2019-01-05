@@ -1,36 +1,52 @@
-package com.etf.os2.project.scheduler;
+package com.etf.os2.project.scheduler.visak;
 
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.PriorityQueue;
 
 import com.etf.os2.project.process.*;
 import com.etf.os2.project.process.Pcb.ProcessState;
+import com.etf.os2.project.scheduler.Scheduler;
 
-public class MFQScheduler extends Scheduler {
+public class MFQScheduler2 extends Scheduler {
 
 	private long[] timeCvant;
-	private LevelMFQS[] level;
-
+	private PriorityQueue<Pcb>[] level;
 	
-	public MFQScheduler(String[] args) { 
-		int numLevel = 0;
+	class PcbCompartor implements Comparator<Pcb>{
+		@Override
+		public int compare(Pcb p1, Pcb p2) {
+			if (p1.getPriority() < p2.getPriority()) 
+				return 0; 
+			else if (p1.getPriority() > p2.getPriority()) 
+				return 1; 
+			return 0;
+		}	
+	}
 
+	@SuppressWarnings("unchecked")
+	public MFQScheduler2(String[] args) {
+		int numLevel = 0;
 		if (args.length > 0)
 			numLevel = Integer.parseInt(args[0]);
 		if (args.length < numLevel + 1)
 			java.lang.System.err.println("Invalid arguments\n\nMFQScheduler:\n" + "\t<NUM_LEVEL> <TIME_CVANT... > ");
 
 		timeCvant = new long[numLevel];
-		level = new LevelMFQS[numLevel];
+		level = new PriorityQueue[numLevel];
+		PcbCompartor comparator = new PcbCompartor();
 		for (int i = 0; i < numLevel; i++) {
 			timeCvant[i] = Long.parseLong(args[i + 1]);
-			level[i] = new LevelMFQS();
+			level[i] = new PriorityQueue<Pcb>(10, comparator);
 		}
 	}
 
 	@Override
 	public Pcb get(int cpuId) {
 		for (int i = 0; i < level.length; i++) {
-			if (level[i].size() != 0) {
-				Pcb pcb =  level[i].remove();
+				Pcb pcb =  level[i].poll();
+				if(pcb!=null) {
 				pcb.setTimeslice(timeCvant[i]);
 				return pcb;
 			}
@@ -40,8 +56,7 @@ public class MFQScheduler extends Scheduler {
 
 	@Override
 	public void put(Pcb pcb) {
-		if (pcb == null || ProcessState.IDLE == pcb.getPreviousState()
-				|| ProcessState.FINISHED == pcb.getPreviousState())
+		if (pcb == null || ProcessState.IDLE == pcb.getPreviousState() || ProcessState.FINISHED == pcb.getPreviousState())
 			return;
 		int i = 0;
 		PcbData pd = pcb.getPcbData();
