@@ -1,12 +1,13 @@
-package com.etf.os2.project.scheduler;
+package com.etf.os2.project.scheduler.visak;
 
 import java.util.Comparator;
 import java.util.PriorityQueue;
 
 import com.etf.os2.project.process.*;
 import com.etf.os2.project.process.Pcb.ProcessState;
+import com.etf.os2.project.scheduler.Scheduler;
 
-public class SJFScheduler extends Scheduler {
+public class SJFSchedulerSingleCPU extends Scheduler {
 	private static long TAUSTART = 1;
 	private static int INITVEL = 20;
 
@@ -14,6 +15,7 @@ public class SJFScheduler extends Scheduler {
 	private boolean preempty;
 	private PriorityQueue<Pcb> queue;
 	private PcbCompartor comparator;
+	private int size;
 
 	class PcbCompartor implements Comparator<Pcb> {
 		@Override
@@ -34,7 +36,7 @@ public class SJFScheduler extends Scheduler {
 		}
 	}
 
-	public SJFScheduler(String[] args) {
+	public SJFSchedulerSingleCPU(String[] args) {
 		alfa = Float.parseFloat(args[0]);
 		int n = Integer.parseInt(args[1]);
 
@@ -45,6 +47,7 @@ public class SJFScheduler extends Scheduler {
 
 		comparator = new PcbCompartor();
 		queue = new PriorityQueue<>(INITVEL, comparator);
+		size=0;
 	}
 
 	@Override
@@ -57,6 +60,7 @@ public class SJFScheduler extends Scheduler {
 				if (pcb.isPreempt())
 					pcb.setPreempt(!preempty);
 			}
+			size--;
 			return pcb;
 		}
 		return null;
@@ -85,11 +89,12 @@ public class SJFScheduler extends Scheduler {
 					break;
 				}
 		}
+		size++;
 		queue.add(pcb);
 	}
 	
 	public int getSize() {
-		return queue.size();
+		return size;
 	}
 
 }

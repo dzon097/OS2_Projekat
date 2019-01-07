@@ -1,13 +1,14 @@
-package com.etf.os2.project.scheduler;
+package com.etf.os2.project.scheduler.visak;
 
 import java.util.Comparator;
 import java.util.PriorityQueue;
 
 import com.etf.os2.project.process.*;
 import com.etf.os2.project.process.Pcb.ProcessState;
+import com.etf.os2.project.scheduler.Scheduler;
 
-public class CFairSchedular extends Scheduler {
-	private final static long MINVRUN = 10;
+public class CFairSchedularSingleCPU extends Scheduler {
+	private final static long MINVRUN = 1;
 	private final static int INITVEL = 20;
 
 	private PriorityQueue<Pcb> buffer;
@@ -38,12 +39,7 @@ public class CFairSchedular extends Scheduler {
 
 	}
 
-	public CFairSchedular(String[] args) {
-		comparator = new PcbCompartor();
-		buffer = new PriorityQueue<Pcb>(INITVEL, comparator);
-	}
-	
-	public CFairSchedular() {
+	public CFairSchedularSingleCPU() {
 		comparator = new PcbCompartor();
 		buffer = new PriorityQueue<Pcb>(INITVEL, comparator);
 	}

@@ -1,20 +1,20 @@
-package com.etf.os2.project.scheduler;
+package com.etf.os2.project.scheduler.visak;
 
 
 import com.etf.os2.project.process.*;
 import com.etf.os2.project.process.Pcb.ProcessState;
+import com.etf.os2.project.scheduler.LevelMFQS;
 
-public class MFQScheduler extends Scheduler {
+public class MFQSchedulerSingleCPU {
 
 	private long[] timeCvant;
 	private LevelMFQS[] level;
 	private int size;
 
 	
-	public MFQScheduler(String[] args) { 
+	public MFQSchedulerSingleCPU(String[] args) { 
 		int numLevel = 0;
 		size=0;
-		
 		if (args.length > 0)
 			numLevel = Integer.parseInt(args[0]);
 		if (args.length < numLevel + 1)
@@ -28,8 +28,7 @@ public class MFQScheduler extends Scheduler {
 		}
 	}
 
-	@Override
-	public Pcb get(int cpuId) {
+	public Pcb get() {
 		for (int i = 0; i < level.length; i++) {
 			if (level[i].size() != 0) {
 				Pcb pcb =  level[i].remove();
@@ -41,7 +40,6 @@ public class MFQScheduler extends Scheduler {
 		return null;
 	}
 
-	@Override
 	public void put(Pcb pcb) {
 		if (pcb == null || ProcessState.IDLE == pcb.getPreviousState()
 				|| ProcessState.FINISHED == pcb.getPreviousState())

@@ -13,11 +13,11 @@ public abstract class Scheduler {
     	java.lang.System.arraycopy(args, 1, constructArgs, 0, constructArgs.length);
     	switch(n) {
     	case 1:
-    		return new SJFScheduler(constructArgs);
+    		return new SJFSchedulerCPU(constructArgs);
 		case 2:
-			return new MFQScheduler(constructArgs);
+			return new MFQSchedulerCPU(constructArgs);
     	case 3:
-    		return new CFairSchedular(constructArgs);
+    		return new CFairSchedularCPU(constructArgs);
     	default:
     		java.lang.System.err.println("Invalid arguments for Scheduler");
             java.lang.System.exit(-1);
